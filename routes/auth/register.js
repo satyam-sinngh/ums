@@ -1,9 +1,12 @@
-import { Router } from "express";
+import express, { Router } from "express";
 import bcrypt from "bcryptjs";
-import User from "../../database/models/User";
+import User from "../../database/models/User.js";
 import jwt from "jsonwebtoken";
+import { sendMail } from "../../lib/email/methods/sendVerificationMail.js";
+import { config } from "dotenv";
+config();
 const router = Router();
-
+router.use(express.json());
 router.post("/register", async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -33,6 +36,13 @@ router.post("/register", async (req, res) => {
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
       expiresIn: 60 * 60,
     });
+
+    await sendMail({
+      name,
+      email,
+      token,
+    });
+
     const newUser = await User.create({
       name,
       email,
@@ -41,8 +51,6 @@ router.post("/register", async (req, res) => {
       verificationTokenExpiry: new Date(Date.now() + 3600 * 1000),
     });
 
-    // TODO: Send mail to the user to validate thier mail
-
     return res.status(201).json({
       message: `User Registered Successfully`,
       success: true,
@@ -50,6 +58,8 @@ router.post("/register", async (req, res) => {
     });
   } catch (error) {
     console.log(`Failed to Register User`, error);
-    return res.json({ error: `Internal Server Error` }).status(500);
+    return res.status(500).json({ error: `Internal Server Error` });
   }
 });
+
+export default router;
