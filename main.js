@@ -5,6 +5,7 @@ import cors from "cors";
 import { connectToDB } from "./database/mongoose.js";
 import registerRoute from "./routes/auth/register.js";
 import loginRoute from "./routes/auth/login.js";
+import verifyRoute from "./routes/auth/verify.js";
 const app = express();
 connectToDB();
 
@@ -17,6 +18,7 @@ app.use(bodyParser.urlencoded());app.get("/", (req, res) => {
 
 app.use("/api/auth", registerRoute);
 app.use("/api/auth", loginRoute);
+app.use("/api/auth", verifyRoute);
 
 app.listen(PORT, (err) => {
   console.log(`App is listening on http://localhost:${PORT}`);
